@@ -26,17 +26,20 @@ async function run() {
     const productCollection = client
       .db("secondTimeAround")
       .collection("products");
+
+    /* categorized product api */
+    app.get("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { categoryID: parseInt(id) };
+      // console.log(query);
+      const products = await productCollection.find(query).toArray();
+      res.send(products);
+    });
   } finally {
   }
 }
 
 run().catch(console.dir);
-
-// client.connect(err => {
-//   const collection = client.db("test").collection("devices");
-//   // perform actions on the collection object
-//   client.close();
-// });
 
 app.listen(port, () => {
   console.log(`buying second hand phone on port ${port}`);
