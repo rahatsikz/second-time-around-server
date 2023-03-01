@@ -26,6 +26,7 @@ async function run() {
     const productCollection = client
       .db("secondTimeAround")
       .collection("products");
+    const userCollection = client.db("secondTimeAround").collection("users");
 
     /* categorized product api */
     app.get("/products/:id", async (req, res) => {
@@ -34,6 +35,14 @@ async function run() {
       // console.log(query);
       const products = await productCollection.find(query).toArray();
       res.send(products);
+    });
+
+    /* add users to database */
+    app.post("/users", async (req, res) => {
+      const info = req.body;
+      console.log(info);
+      const user = await userCollection.insertOne(info);
+      res.send(user);
     });
   } finally {
   }
