@@ -45,6 +45,13 @@ async function run() {
       res.send(unpurchased);
     });
 
+    /* add a product by seller */
+    app.post("/products/add", async (req, res) => {
+      const productInfo = req.body.add;
+      const product = await productCollection.insertOne(productInfo);
+      res.send(product);
+    });
+
     /* filter user by role */
     app.get("/users", async (req, res) => {
       const email = req.query.email;
