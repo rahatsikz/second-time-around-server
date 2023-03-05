@@ -52,6 +52,42 @@ async function run() {
       res.send(product);
     });
 
+    /* get my products */
+    app.get("/products", async (req, res) => {
+      const name = req.query.name;
+      const query = { Seller: name };
+      // console.log(query);
+      const myProduct = await productCollection.find(query).toArray();
+      res.send(myProduct);
+    });
+
+    /* delete my product */
+    app.delete("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await productCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    /* advertise my product */
+    app.put("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const info = req.body;
+      const updateDoc = {
+        $set: {
+          isAdvertise: info.advertised,
+        },
+      };
+      const result = await productCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(result);
+    });
+
     /* filter user by role */
     app.get("/users", async (req, res) => {
       const email = req.query.email;
