@@ -88,6 +88,21 @@ async function run() {
       res.send(result);
     });
 
+    /* get advertised products */
+    app.get("/advertisedproduct", async (req, res) => {
+      const query = { isAdvertise: true, isProductPurchased: false };
+      const products = await productCollection.find(query).toArray();
+      res.send(products);
+    });
+
+    /* My Buyers */
+    app.get("/mybuyer", async (req, res) => {
+      const sellerName = req.query.name;
+      const query = { Seller: sellerName };
+      const buyers = await paymentCollection.find(query).toArray();
+      res.send(buyers);
+    });
+
     /* filter user by role */
     app.get("/users", async (req, res) => {
       const email = req.query.email;
