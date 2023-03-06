@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5000;
@@ -20,6 +21,22 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
+
+function verifyJWT(req, res, next) {
+  const authHeaders = req.headers.authorization;
+  if (!authHeaders) {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+
+  const token = authHeaders.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: "Forbidden access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
 
 async function run() {
   try {
@@ -43,6 +60,20 @@ async function run() {
         (product) => product.isProductPurchased === false
       );
       res.send(unpurchased);
+    });
+
+    /* JWT */
+    app.get("/jwt", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      if (user) {
+        const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, {
+          expiresIn: "1d",
+        });
+        return res.send({ accessToken: token });
+      }
+      res.status(403).send({ accessToken: "" });
     });
 
     /* add a product by seller */
@@ -123,14 +154,14 @@ async function run() {
     });
 
     /* get advertised products */
-    app.get("/advertisedproduct", async (req, res) => {
+    app.get("/advertisedproduct", verifyJWT, async (req, res) => {
       const query = { isAdvertise: true, isProductPurchased: false };
       const products = await productCollection.find(query).toArray();
       res.send(products);
     });
 
     /* My Buyers */
-    app.get("/mybuyer", async (req, res) => {
+    app.get("/mybuyer", verifyJWT, async (req, res) => {
       const sellerName = req.query.name;
       const query = { Seller: sellerName };
       const buyers = await paymentCollection.find(query).toArray();
@@ -166,8 +197,12 @@ async function run() {
     });
 
     /* get orders by email */
-    app.get("/orders", async (req, res) => {
+    app.get("/orders", verifyJWT, async (req, res) => {
       const email = req.query.email;
+      const decodedEmail = req.decoded.email;
+      if (email !== decodedEmail) {
+        return res.status(403).send({ message: "Forbidden access" });
+      }
       const query = { email: email };
       const orders = await orderCollection.find(query).toArray();
       res.send(orders);
