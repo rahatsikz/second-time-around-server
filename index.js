@@ -189,6 +189,21 @@ async function run() {
       res.send(payment);
     });
 
+    /* Find all buyer */
+    app.get("/buyers", async (req, res) => {
+      const query = { role: "Buyer" };
+      const allBuyers = await userCollection.find(query).toArray();
+      res.send(allBuyers);
+    });
+
+    /* delete a buyer */
+    app.delete("/buyers/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const deleteBuyer = await userCollection.deleteOne(filter);
+      res.send(deleteBuyer);
+    });
+
     app.put("/productstate", async (req, res) => {
       const id = req.query.id;
       const filter = { _id: new ObjectId(id) };
