@@ -204,6 +204,49 @@ async function run() {
       res.send(deleteBuyer);
     });
 
+    /* find all seller */
+    app.get("/sellers", async (req, res) => {
+      const query = { role: "Seller" };
+      const allSellers = await userCollection.find(query).toArray();
+      res.send(allSellers);
+    });
+
+    /* delete a seller */
+    app.delete("/sellers", async (req, res) => {
+      const name = req.query.name;
+      const filter = { name: name };
+      const deleteSeller = await userCollection.deleteOne(filter);
+      const productSeller = { Seller: name };
+      const deleteProducts = await productCollection.deleteMany(productSeller);
+      res.send(deleteSeller);
+    });
+
+    /* verify a seller */
+    app.put("/sellers", async (req, res) => {
+      const name = req.query.name;
+      const filter = { name: name };
+      const info = req.body;
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          verified: info.verification,
+        },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, options);
+      const productFilter = { Seller: name };
+      const updateProduct = {
+        $set: {
+          isSellerVerified: info.verification,
+        },
+      };
+      const finalProduct = await productCollection.updateOne(
+        productFilter,
+        updateProduct,
+        options
+      );
+      res.send(result);
+    });
+
     app.put("/productstate", async (req, res) => {
       const id = req.query.id;
       const filter = { _id: new ObjectId(id) };
