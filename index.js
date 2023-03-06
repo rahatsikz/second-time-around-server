@@ -69,6 +69,40 @@ async function run() {
       res.send(result);
     });
 
+    /* Report product to admin */
+    app.put("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const info = req.body;
+      const updateDoc = {
+        $set: {
+          isReported: info.reported,
+        },
+      };
+      const result = await productCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(result);
+    });
+
+    /* get all reported products */
+    app.get("/reportedproduct", async (req, res) => {
+      const query = { isReported: true };
+      const result = await productCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    /* delete reported products */
+    app.delete("/reportedproduct/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const deleteProduct = await productCollection.deleteOne(query);
+      res.send(deleteProduct);
+    });
+
     /* advertise my product */
     app.put("/products/:id", async (req, res) => {
       const id = req.params.id;
