@@ -101,7 +101,7 @@ async function run() {
     });
 
     /* Report product to admin */
-    app.put("/products/:id", async (req, res) => {
+    app.put("/reports/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const options = { upsert: true };
@@ -140,14 +140,14 @@ async function run() {
       const filter = { _id: new ObjectId(id) };
       const options = { upsert: true };
       const info = req.body;
-      const updateDoc = {
+      const updateDoc2 = {
         $set: {
           isAdvertise: info.advertised,
         },
       };
       const result = await productCollection.updateOne(
         filter,
-        updateDoc,
+        updateDoc2,
         options
       );
       res.send(result);
